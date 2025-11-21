@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema de Reservas - Agenda citas fácilmente">
+    <title>Sistema de Reservas - Demo</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #25D366;
+            --warning: #f59e0b;
+            --dark: #1a202c;
+            --light: #f7fafc;
+            --text: #2d3748;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--light);
+            color: var(--text);
+        }
+        
+        /* Header */
+        .header {
+            background: var(--gradient);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.95;
+            font-size: 18px;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        /* Main Card */
+        .reserva-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        }
+        
+        /* Selector de servicio */
+        .servicios-section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            color: var(--dark);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .servicios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .servicio-btn {
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .servicio-btn:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .servicio-btn.selected {
+            border-color: var(--primary);
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .servicio-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .servicio-nombre {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .servicio-duracion {
+            font-size: 13px;
+            color: #718096;
+        }
+        
+        .servicio-precio {
+            font-size: 18px;
+            color: var(--primary);
+            font-weight: 700;
+            margin-top: 8px;
+        }
+        
+        /* Calendario */
+        .calendario-section {
+            margin-bottom: 40px;
+        }
+        
+        .calendario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .mes-actual {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .calendario-nav {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-btn {
+            width: 35px;
+            height: 35px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background: var(--secondary);
+            transform: scale(1.1);
+        }
+        
+        .calendario-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+        
+        .dia-label {
+            text-align: center;
+            font-weight: 600;
+            color: #718096;
+            font-size: 14px;
+            padding: 10px;
+        }
+        
+        .dia {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .dia:hover:not(.disabled):not(.pasado) {
+            border-color: var(--primary);
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.05);
+        }
+        
+        .dia.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .dia.disabled,
+        .dia.pasado {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .dia.hoy {
+            border-color: var(--warning);
+            font-weight: 700;
+        }
+        
+        /* Horarios */
+        .horarios-section {
+            margin-bottom: 40px;
+        }
+        
+        .horarios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+        
+        .horario-btn {
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .horario-btn:hover:not(.ocupado) {
+            border-color: var(--primary);
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .horario-btn.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .horario-btn.ocupado {
+            opacity: 0.3;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+        
+        .mensaje-info {
+            text-align: center;
+            padding: 20px;
+            color: #718096;
+            font-style: italic;
+        }
+        
+        /* Formulario de datos */
+        .datos-section {
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--dark);
+            font-weight: 600;
+        }
+        
+        .form-group label .required {
+            color: #ef4444;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        /* Resumen */
+        .resumen-reserva {
+            background: var(--light);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .resumen-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #cbd5e0;
+        }
+        
+        .resumen-item:last-child {
+            border-bottom: none;
+        }
+        
+        .resumen-label {
+            color: #718096;
+        }
+        
+        .resumen-value {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        /* Botones */
+        .btn-container {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-whatsapp {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-whatsapp:hover {
+            background: #1ea952;
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+            margin-top: 60px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 28px;
+            }
+            
+            .reserva-card {
+                padding: 25px;
+            }
+            
+            .servicios-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .horarios-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .btn-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>📅 Sistema de Reservas</h1>
+        <p>Agenda tu cita de forma rápida y sencilla</p>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="container">
+        <div class="reserva-card">
+            <!-- Selección de servicio -->
+            <div class="servicios-section">
+                <h2 class="section-title">
+                    <span>1️⃣</span>
+                    Selecciona un servicio
+                </h2>
+                <div class="servicios-grid" id="serviciosGrid">
+                    <!-- Los servicios se cargan aquí -->
+                </div>
+            </div>
+
+            <!-- Calendario -->
+            <div class="calendario-section">
+                <h2 class="section-title">
+                    <span>2️⃣</span>
+                    Elige una fecha
+                </h2>
+                <div class="calendario-header">
+                    <div class="mes-actual" id="mesActual"></div>
+                    <div class="calendario-nav">
+                        <button class="nav-btn" onclick="cambiarMes(-1)">←</button>
+                        <button class="nav-btn" onclick="cambiarMes(1)">→</button>
+                    </div>
+                </div>
+                <div class="calendario-grid" id="calendarioGrid"></div>
+            </div>
+
+            <!-- Horarios -->
+            <div class="horarios-section" id="horariosSection" style="display: none;">
+                <h2 class="section-title">
+                    <span>3️⃣</span>
+                    Selecciona un horario
+                </h2>
+                <div class="horarios-grid" id="horariosGrid"></div>
+            </div>
+
+            <!-- Datos del cliente -->
+            <div class="datos-section" id="datosSection" style="display: none;">
+                <h2 class="section-title">
+                    <span>4️⃣</span>
+                    Tus datos
+                </h2>
+                
+                <div class="form-group">
+                    <label>Nombre completo <span class="required">*</span></label>
+                    <input type="text" id="nombreCliente" placeholder="Ej: María López" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Teléfono / WhatsApp <span class="required">*</span></label>
+                    <input type="tel" id="telefonoCliente" placeholder="Ej: 0991234567" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Comentarios adicionales (opcional)</label>
+                    <textarea id="comentarios" placeholder="Ej: Prefiero un profesional en particular, tengo alguna condición especial, etc."></textarea>
+                </div>
+
+                <!-- Resumen -->
+                <div class="resumen-reserva">
+                    <h3 style="margin-bottom: 15px; color: var(--dark);">📋 Resumen de tu reserva</h3>
+                    <div class="resumen-item">
+                        <span class="resumen-label">Servicio:</span>
+                        <span class="resumen-value" id="resumenServicio">-</span>
+                    </div>
+                    <div class="resumen-item">
+                        <span class="resumen-label">Fecha:</span>
+                        <span class="resumen-value" id="resumenFecha">-</span>
+                    </div>
+                    <div class="resumen-item">
+                        <span class="resumen-label">Hora:</span>
+                        <span class="resumen-value" id="resumenHora">-</span>
+                    </div>
+                    <div class="resumen-item">
+                        <span class="resumen-label">Duración:</span>
+                        <span class="resumen-value" id="resumenDuracion">-</span>
+                    </div>
+                    <div class="resumen-item" style="border-top: 2px solid var(--primary); margin-top: 15px; padding-top: 15px;">
+                        <span class="resumen-label" style="font-size: 18px; font-weight: 600;">Precio:</span>
+                        <span class="resumen-value" style="font-size: 24px; color: var(--primary);" id="resumenPrecio">-</span>
+                    </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="limpiarFormulario()">🔄 Nueva Reserva</button>
+                    <button class="btn btn-whatsapp" onclick="confirmarReserva()">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                        </svg>
+                        Confirmar Reserva
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>💼 Demo de Sistema de Reservas</p>
+        <p>Creado por Ángel Guamán - Desarrollo Web</p>
+    </div>
+
+    <script>
+        // Base de datos de servicios
+        const servicios = [
+            { id: 1, nombre: 'Corte de Cabello', duracion: '30 min', precio: 8.00, icon: '✂️' },
+            { id: 2, nombre: 'Corte + Barba', duracion: '45 min', precio: 12.00, icon: '💈' },
+            { id: 3, nombre: 'Tinte', duracion: '60 min', precio: 25.00, icon: '🎨' },
+            { id: 4, nombre: 'Peinado', duracion: '30 min', precio: 10.00, icon: '💇' }
+        ];
+
+        // Horarios disponibles
+        const horariosDisponibles = [
+            '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+            '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30'
+        ];
+
+        // Variables globales
+        let mesActual = new Date();
+        let reserva = {
+            servicio: null,
+            fecha: null,
+            hora: null
+        };
+
+        // Cargar servicios
+        function cargarServicios() {
+            const grid = document.getElementById('serviciosGrid');
+            grid.innerHTML = servicios.map(servicio => `
+                <div class="servicio-btn" onclick="seleccionarServicio(${servicio.id})">
+                    <div class="servicio-icon">${servicio.icon}</div>
+                    <div class="servicio-nombre">${servicio.nombre}</div>
+                    <div class="servicio-duracion">${servicio.duracion}</div>
+                    <div class="servicio-precio">$${servicio.precio.toFixed(2)}</div>
+                </div>
+            `).join('');
+        }
+
+        // Seleccionar servicio
+        function seleccionarServicio(id) {
+            document.querySelectorAll('.servicio-btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.closest('.servicio-btn').classList.add('selected');
+            reserva.servicio = servicios.find(s => s.id === id);
+        }
+
+        // Generar calendario
+        function generarCalendario() {
+            const grid = document.getElementById('calendarioGrid');
+            const año = mesActual.getFullYear();
+            const mes = mesActual.getMonth();
+            
+            // Actualizar título del mes
+            document.getElementById('mesActual').textContent = mesActual.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+            
+            // Días de la semana
+            const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+            let html = diasSemana.map(dia => `<div class="dia-label">${dia}</div>`).join('');
+            
+            // Primer día del mes y días totales
+            const primerDia = new Date(año, mes, 1).getDay();
+            const diasEnMes = new Date(año, mes + 1, 0).getDate();
+            
+            // Hoy
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            
+            // Espacios vacíos antes del primer día
+            for (let i = 0; i < primerDia; i++) {
+                html += '<div class="dia disabled"></div>';
+            }
+            
+            // Días del mes
+            for (let dia = 1; dia <= diasEnMes; dia++) {
+                const fecha = new Date(año, mes, dia);
+                fecha.setHours(0, 0, 0, 0);
+                const esPasado = fecha < hoy;
+                const esDomingo = fecha.getDay() === 0;
+                const esHoy = fecha.getTime() === hoy.getTime();
+                
+                let clases = 'dia';
+                if (esPasado) clases += ' pasado';
+                if (esDomingo) clases += ' disabled';
+                if (esHoy) clases += ' hoy';
+                
+                html += `<div class="${clases}" onclick="seleccionarFecha(${año}, ${mes}, ${dia})">${dia}</div>`;
+            }
+            
+            grid.innerHTML = html;
+        }
+
+        // Cambiar mes
+        function cambiarMes(direccion) {
+            mesActual = new Date(mesActual.getFullYear(), mesActual.getMonth() + direccion, 1);
+            generarCalendario();
+        }
+
+        // Seleccionar fecha
+        function seleccionarFecha(año, mes, dia) {
+            if (event.target.classList.contains('disabled') || event.target.classList.contains('pasado')) return;
+            if (!reserva.servicio) {
+                alert('Por favor selecciona un servicio primero');
+                return;
+            }
+            
+            document.querySelectorAll('.dia').forEach(d => d.classList.remove('selected'));
+            event.target.classList.add('selected');
+            
+            reserva.fecha = new Date(año, mes, dia);
+            mostrarHorarios();
+        }
+
+        // Mostrar horarios
+        function mostrarHorarios() {
+            const section = document.getElementById('horariosSection');
+            const grid = document.getElementById('horariosGrid');
+            section.style.display = 'block';
+            
+            // Simular algunos horarios ocupados al azar
+            const ocupados = horariosDisponibles.filter(() => Math.random() > 0.7);
+            
+            grid.innerHTML = horariosDisponibles.map(hora => {
+                const ocupado = ocupados.includes(hora);
+                return `
+                    <button class="horario-btn ${ocupado ? 'ocupado' : ''}" 
+                            onclick="seleccionarHorario('${hora}')"
+                            ${ocupado ? 'disabled' : ''}>
+                        ${hora}
+                    </button>
+                `;
+            }).join('');
+            
+            section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Seleccionar horario
+        function seleccionarHorario(hora) {
+            document.querySelectorAll('.horario-btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+            
+            reserva.hora = hora;
+            mostrarFormularioDatos();
+        }
+
+        // Mostrar formulario
+        function mostrarFormularioDatos() {
+            const section = document.getElementById('datosSection');
+            section.style.display = 'block';
+            
+            // Actualizar resumen
+            document.getElementById('resumenServicio').textContent = `${reserva.servicio.icon} ${reserva.servicio.nombre}`;
+            document.getElementById('resumenFecha').textContent = reserva.fecha.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('resumenHora').textContent = reserva.hora;
+            document.getElementById('resumenDuracion').textContent = reserva.servicio.duracion;
+            document.getElementById('resumenPrecio').textContent = `$${reserva.servicio.precio.toFixed(2)}`;
+            
+            section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Confirmar reserva
+        function confirmarReserva() {
+            const nombre = document.getElementById('nombreCliente').value.trim();
+            const telefono = document.getElementById('telefonoCliente').value.trim();
+            const comentarios = document.getElementById('comentarios').value.trim();
+            
+            if (!nombre || !telefono) {
+                alert('Por favor completa todos los campos requeridos');
+                return;
+            }
+            
+            // Crear mensaje para WhatsApp
+            let mensaje = `📅 *NUEVA RESERVA*\n\n`;
+            mensaje += `👤 *Cliente:* ${nombre}\n`;
+            mensaje += `📱 *Teléfono:* ${telefono}\n\n`;
+            mensaje += `💈 *Servicio:* ${reserva.servicio.nombre}\n`;
+            mensaje += `📅 *Fecha:* ${reserva.fecha.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}\n`;
+            mensaje += `🕐 *Hora:* ${reserva.hora}\n`;
+            mensaje += `⏱️ *Duración:* ${reserva.servicio.duracion}\n`;
+            mensaje += `💰 *Precio:* $${reserva.servicio.precio.toFixed(2)}\n`;
+            
+            if (comentarios) {
+                mensaje += `\n💬 *Comentarios:* ${comentarios}`;
+            }
+            
+            const urlWhatsApp = `https://wa.me/593999999999?text=${encodeURIComponent(mensaje)}`;
+            window.open(urlWhatsApp, '_blank');
+        }
+
+        // Limpiar formulario
+        function limpiarFormulario() {
+            reserva = { servicio: null, fecha: null, hora: null };
+            document.getElementById('nombreCliente').value = '';
+            document.getElementById('telefonoCliente').value = '';
+            document.getElementById('comentarios').value = '';
+            document.querySelectorAll('.servicio-btn').forEach(btn => btn.classList.remove('selected'));
+            document.querySelectorAll('.dia').forEach(d => d.classList.remove('selected'));
+            document.getElementById('horariosSection').style.display = 'none';
+            document.getElementById('datosSection').style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Inicializar
+        cargarServicios();
+        generarCalendario();
+    </script>
+</body>
+</html>
